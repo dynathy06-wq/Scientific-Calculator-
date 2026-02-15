@@ -1,0 +1,226 @@
+# ==============================
+# IMPORT REQUIRED LIBRARIES
+# ==============================
+
+import tkinter as tk           # Tkinter is used to create GUI (window, buttons, input box)
+from tkinter import messagebox # Used for popup messages (not used yet, but can be added later)
+import math                    # Math library for sin, cos, tan, factorial, etc.
+
+
+# ==============================
+# CALCULATOR CLASS (OOP)
+# ==============================
+
+class Calculator:
+    """
+    This class represents a Scientific Calculator.
+    It contains:
+    - GUI design
+    - Button actions
+    - Mathematical logic
+    """
+
+    def __init__(self, root):
+        """
+        This constructor runs automatically when the Calculator object is created.
+        It sets up the window, screen, and buttons.
+        """
+
+        # ------------------------------
+        # WINDOW SETUP
+        # ------------------------------
+        self.root = root
+        self.root.title("Scientific Calculator")          # Window title
+        self.root.configure(background="#FEFAFA")         # Background color
+        self.root.resizable(width=False, height=False)    # Disable resizing
+
+        # ------------------------------
+        # VARIABLES
+        # ------------------------------
+        self.calc_operator = ""        # Stores the math expression (e.g. "7+3")
+        self.text_input = tk.StringVar()  # Connects Python data to Entry display
+
+        # ------------------------------
+        # DISPLAY SCREEN
+        # ------------------------------
+        self.screen = tk.Entry(
+            root,
+            font=('Arial', 24, 'bold'),   # Font style
+            textvariable=self.text_input,# Shows text from StringVar
+            bd=20,                        # Border thickness
+            insertwidth=4,
+            bg="#8011f0",                 # Background color
+            fg="#000000",                 # Text color
+            justify='right'               # Align text to the right
+        )
+
+        # Place the display on the grid
+        self.screen.grid(
+            row=0,
+            column=0,
+            columnspan=4,                 # Span across 4 columns
+            sticky="nsew",
+            padx=10,
+            pady=20
+        )
+
+        # ==============================
+        # BUTTON DEFINITIONS
+        # ==============================
+        """
+        Each button is defined as:
+        (Button Text, Row, Column, Function to call)
+        """
+
+        buttons = [
+            ('sin', 1, 0, self.trigin_sin),
+            ('cos', 1, 1, self.trigin_cos),
+            ('tan', 1, 2, self.trigin_tan),
+            ('cot', 1, 3, self.trigin_cot),
+
+            ('%',  2, 0, self.fact_func),     # Factorial
+            ('Del',2, 1, self.percentage),    # Percentage
+            ('C',  2, 2, self.button_delete), # Delete last character
+            ('AC', 2, 3, self.button_clear),  # Clear all
+
+            ('7', 3, 0, lambda: self.button_click(7)),
+            ('8', 3, 1, lambda: self.button_click(8)),
+            ('9', 3, 2, lambda: self.button_click(9)),
+            ('/', 3, 3, lambda: self.button_click('/')),
+
+            ('4', 4, 0, lambda: self.button_click(4)),
+            ('5', 4, 1, lambda: self.button_click(5)),
+            ('6', 4, 2, lambda: self.button_click(6)),
+            ('*', 4, 3, lambda: self.button_click('*')),
+
+            ('1', 5, 0, lambda: self.button_click(1)),
+            ('2', 5, 1, lambda: self.button_click(2)),
+            ('3', 5, 2, lambda: self.button_click(3)),
+            ('-', 5, 3, lambda: self.button_click('-')),
+
+            ('0', 6, 0, lambda: self.button_click(0)),
+            ('.', 6, 1, lambda: self.button_click('.')),
+            ('=', 6, 2, self.button_equal),
+            ('+', 6, 3, lambda: self.button_click('+'))
+        ]
+
+        # ==============================
+        # CREATE BUTTONS USING LOOP
+        # ==============================
+
+        for (text, row, col, cmd) in buttons:
+
+            # Choose button color
+            button_color = "#5c94cc" if text.isdigit() else "#e67e22"
+
+            if text == "=":
+                button_color = "#27ae60"  # Green
+            if text in ("AC", "Del"):
+                button_color = "#c0392b"  # Red
+
+            # Create button
+            tk.Button(
+                root,
+                text=text,
+                command=cmd,
+                width=5,
+                height=2,
+                font=('Arial', 14, 'bold'),
+                fg="blue",
+                bg=button_color,
+                relief="flat"
+            ).grid(
+                row=row,
+                column=col,
+                padx=5,
+                pady=5,
+                sticky="nsew"
+            )
+
+    # ==============================
+    # BUTTON FUNCTIONS
+    # ==============================
+
+    def button_click(self, char):
+        """Add number or operator to expression"""
+        self.calc_operator += str(char)
+        self.text_input.set(self.calc_operator)
+
+    def button_clear(self):
+        """Clear all input"""
+        self.calc_operator = ""
+        self.text_input.set("")
+
+    def button_delete(self):
+        """Delete last character"""
+        self.calc_operator = self.calc_operator[:-1]
+        self.text_input.set(self.calc_operator)
+
+    def button_equal(self):
+        """Calculate the result"""
+        try:
+            result = str(eval(self.calc_operator))  # Evaluate expression
+            self.text_input.set(result)
+            self.calc_operator = result
+        except:
+            self.text_input.set("Error")
+            self.calc_operator = ""
+
+    # ==============================
+    # SCIENTIFIC FUNCTIONS
+    # ==============================
+
+    def fact_func(self):
+        """Calculate factorial"""
+        try:
+            result = math.factorial(int(float(self.calc_operator)))
+            self.text_input.set(result)
+            self.calc_operator = str(result)
+        except:
+            self.text_input.set("Error")
+
+    def trigin_sin(self):
+        self._trig_helper(math.sin)
+
+    def trigin_cos(self):
+        self._trig_helper(math.cos)
+
+    def trigin_tan(self):
+        self._trig_helper(math.tan)
+
+    def trigin_cot(self):
+        """Calculate cotangent"""
+        try:
+            result = 1 / math.tan(math.radians(float(self.calc_operator)))
+            self.text_input.set(round(result, 6))
+            self.calc_operator = str(result)
+        except:
+            self.text_input.set("Error")
+
+    def _trig_helper(self, func):
+        """Helper function for sin, cos, tan"""
+        try:
+            result = func(math.radians(float(self.calc_operator)))
+            self.text_input.set(round(result, 6))
+            self.calc_operator = str(result)
+        except:
+            self.text_input.set("Error")
+
+    def percentage(self):
+        """Calculate percentage"""
+        try:
+            result = float(self.calc_operator) / 100
+            self.text_input.set(result)
+            self.calc_operator = str(result)
+        except:
+            self.text_input.set("Error")
+
+
+# ==============================
+# MAIN PROGRAM
+# ==============================
+
+if __name__ == "__main__":
+    root = tk.Tk()        # Create main window
+    Calculator(root)      # Create calculator object
+    root.mainloop()       # Run the app
